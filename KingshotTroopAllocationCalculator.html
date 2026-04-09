@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Kingshot Army Allocation Calculator</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  label { display: block; margin-top: 10px; }
+  input { margin-left: 10px; }
+  table { border-collapse: collapse; margin-top: 20px; }
+  th, td { border: 1px solid #333; padding: 5px 10px; text-align: center; }
+</style>
+</head>
+<body>
+<h2 id="title">Kingshot Army Allocation Calculator</h2>
+
+<!-- Language Switch -->
+<label>
+  <span id="langLabel">Select Language:</span>
+  <select id="langSelect" onchange="switchLang()">
+    <option value="en" selected>English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語</option>
+    <option value="ar">العربية</option>
+    <option value="id">Bahasa Indonesia</option>
+  </select>
+</label>
+
+<form id="armyForm">
+  <label id="infLabel">Max Infantry: <input type="number" id="infantry" value="30000"></label>
+  <label id="cavLabel">Max Cavalry: <input type="number" id="cavalry" value="30000"></label>
+  <label id="arcLabel">Max Archers: <input type="number" id="archer" value="30000"></label>
+  <label id="teamLabel">Number of Teams: <input type="number" id="teams" value="6"></label>
+  <label id="ratioLabel">Ratio (Infantry/Cavalry/Archers): <input type="text" id="ratio" value="50/20/30"></label>
+  <button type="button" onclick="calculate()" id="calcBtn">Calculate Allocation</button>
+</form>
+
+<div id="result"></div>
+
+<script>
+const translations = {
+  en: {
+    title: "Kingshot Army Allocation Calculator",
+    langLabel: "Select Language:",
+    infLabel: "Max Infantry:",
+    cavLabel: "Max Cavalry:",
+    arcLabel: "Max Archers:",
+    teamLabel: "Number of Teams:",
+    ratioLabel: "Ratio (Infantry/Cavalry/Archers):",
+    calcBtn: "Calculate Allocation",
+    tableHeaders: ["Team", "Infantry", "Cavalry", "Archers"]
+  },
+  zh: {
+    title: "Kingshot 兵力分配計算器",
+    langLabel: "選擇語言:",
+    infLabel: "步兵最大數量:",
+    cavLabel: "騎兵最大數量:",
+    arcLabel: "弓兵最大數量:",
+    teamLabel: "隊伍數量:",
+    ratioLabel: "比例 (步兵/騎兵/弓兵):",
+    calcBtn: "計算分配",
+    tableHeaders: ["隊伍", "步兵", "騎兵", "弓兵"]
+  },
+  ja: {
+    title: "Kingshot 兵力配分計算機",
+    langLabel: "言語を選択:",
+    infLabel: "歩兵最大数:",
+    cavLabel: "騎兵最大数:",
+    arcLabel: "弓兵最大数:",
+    teamLabel: "部隊数:",
+    ratioLabel: "比率 (歩兵/騎兵/弓兵):",
+    calcBtn: "配分を計算",
+    tableHeaders: ["部隊", "歩兵", "騎兵", "弓兵"]
+  },
+  ar: {
+    title: "حاسبة توزيع جيش Kingshot",
+    langLabel: "اختر اللغة:",
+    infLabel: "الحد الأقصى للمشاة:",
+    cavLabel: "الحد الأقصى للفرسان:",
+    arcLabel: "الحد الأقصى للرماة:",
+    teamLabel: "عدد الفرق:",
+    ratioLabel: "النسبة (مشاة/فرسان/رماة):",
+    calcBtn: "احسب التوزيع",
+    tableHeaders: ["الفريق", "مشاة", "فرسان", "رماة"]
+  },
+  id: {
+    title: "Kalkulator Pembagian Pasukan Kingshot",
+    langLabel: "Pilih Bahasa:",
+    infLabel: "Maksimum Infanteri:",
+    cavLabel: "Maksimum Kavaleri:",
+    arcLabel: "Maksimum Pemanah:",
+    teamLabel: "Jumlah Tim:",
+    ratioLabel: "Rasio (Infanteri/Kavaleri/Pemanah):",
+    calcBtn: "Hitung Pembagian",
+    tableHeaders: ["Tim", "Infanteri", "Kavaleri", "Pemanah"]
+  }
+};
+
+function switchLang() {
+  const lang = document.getElementById('langSelect').value;
+  const t = translations[lang];
+  document.getElementById('title').innerText = t.title;
+  document.getElementById('langLabel').innerText = t.langLabel;
+  document.getElementById('infLabel').childNodes[0].nodeValue = t.infLabel + " ";
+  document.getElementById('cavLabel').childNodes[0].nodeValue = t.cavLabel + " ";
+  document.getElementById('arcLabel').childNodes[0].nodeValue = t.arcLabel + " ";
+  document.getElementById('teamLabel').childNodes[0].nodeValue = t.teamLabel + " ";
+  document.getElementById('ratioLabel').childNodes[0].nodeValue = t.ratioLabel + " ";
+  document.getElementById('calcBtn').innerText = t.calcBtn;
+}
+
+function calculate() {
+  const infantryMax = parseInt(document.getElementById('infantry').value) || 0;
+  const cavalryMax = parseInt(document.getElementById('cavalry').value) || 0;
+  const archerMax = parseInt(document.getElementById('archer').value) || 0;
+  const teams = parseInt(document.getElementById('teams').value) || 1;
+  const ratioStr = document.getElementById('ratio').value.trim();
+  const lang = document.getElementById('langSelect').value;
+  const t = translations[lang];
+  
+  const ratioParts = ratioStr.split('/');
+  if (ratioParts.length !== 3) {
+    alert("Ratio must be three numbers, e.g. 50/20/30");
+    return;
+  }
+  const rInf = parseFloat(ratioParts[0]);
+  const rCav = parseFloat(ratioParts[1]);
+  const rArc = parseFloat(ratioParts[2]);
+  const totalRatio = rInf + rCav + rArc;
+
+  const totalSoldiers = infantryMax + cavalryMax + archerMax;
+  const perTeamTotal = totalSoldiers / teams;
+
+  let perTeamInf = perTeamTotal * (rInf / totalRatio);
+  let perTeamCav = perTeamTotal * (rCav / totalRatio);
+  let perTeamArc = perTeamTotal * (rArc / totalRatio);
+
+  let totalInf = perTeamInf * teams;
+  let totalCav = perTeamCav * teams;
+  let totalArc = perTeamArc * teams;
+
+  const scaleInf = infantryMax / totalInf;
+  const scaleCav = cavalryMax / totalCav;
+  const scaleArc = archerMax / totalArc;
+  const scale = Math.min(scaleInf, scaleCav, scaleArc, 1);
+
+  perTeamInf *= scale;
+  perTeamCav *= scale;
+  perTeamArc *= scale;
+
+  let html = "<table><tr>";
+  for (const h of t.tableHeaders) {
+    html += `<th>${h}</th>`;
+  }
+  html += "</tr>";
+
+  for (let i = 1; i <= teams; i++) {
+    html += `<tr><td>${i}</td><td>${Math.floor(perTeamInf)}</td><td>${Math.floor(perTeamCav)}</td><td>${Math.floor(perTeamArc)}</td></tr>`;
+  }
+  html += "</table>";
+
+  document.getElementById('result').innerHTML = html;
+}
+</script>
+</body>
+</html>
