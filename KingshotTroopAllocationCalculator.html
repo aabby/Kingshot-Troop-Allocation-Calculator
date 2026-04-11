@@ -1,166 +1,216 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Kingshot Army Allocation Calculator</title>
-<style>
-  body { font-family: Arial, sans-serif; margin: 20px; }
-  label { display: block; margin-top: 10px; }
-  input { margin-left: 10px; }
-  table { border-collapse: collapse; margin-top: 20px; }
-  th, td { border: 1px solid #333; padding: 5px 10px; text-align: center; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kingshot Army Allocation Calculator</title>
+    <style>
+        :root {
+            --bg: #121214;
+            --card: #1e1e24;
+            --border: #333;
+            --primary: #4a90e2;
+            --primary-hover: #357abd;
+            --text: #e0e0e0;
+            --text-muted: #888;
+            --success: #4caf50;
+            --warning: #ff9800;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        .container {
+            background: var(--card);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid var(--border);
+        }
+        h1 { font-size: 1.4rem; margin-top: 0; text-align: center; color: var(--primary); }
+        .lang-select { width: 100%; padding: 8px; margin-bottom: 16px; background: #2a2a32; color: var(--text); border: 1px solid var(--border); border-radius: 6px; }
+        .input-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-weight: 500; font-size: 0.9rem; }
+        input, select { width: 100%; padding: 10px; background: #2a2a32; border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 1rem; box-sizing: border-box; }
+        input:focus { outline: none; border-color: var(--primary); }
+        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.2s; }
+        button:hover { background: var(--primary-hover); }
+        #results { margin-top: 20px; padding: 16px; background: #18181c; border-radius: 8px; border: 1px solid var(--border); display: none; }
+        .result-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #2a2a32; }
+        .result-row:last-child { border-bottom: none; }
+        .result-label { color: var(--text-muted); }
+        .result-value { font-weight: bold; color: var(--text); }
+        .result-value.remainder { color: var(--warning); }
+        .rtl { direction: rtl; }
+        .note { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; text-align: center; }
+    </style>
 </head>
 <body>
-<h2 id="title">Kingshot Army Allocation Calculator</h2>
+<div class="container" id="mainContainer">
+    <select id="langSelect" class="lang-select">
+        <option value="en">English</option>
+        <option value="zh-CN">简体中文</option>
+        <option value="zh-TW">繁體中文</option>
+        <option value="ko">한국어</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="es">Español</option>
+        <option value="ja">日本語</option>
+        <option value="ar">العربية</option>
+        <option value="id">Bahasa Indonesia</option>
+    </select>
 
-<!-- Language Switch -->
-<label>
-  <span id="langLabel">Select Language:</span>
-  <select id="langSelect" onchange="switchLang()">
-    <option value="en" selected>English</option>
-    <option value="zh">中文</option>
-    <option value="ja">日本語</option>
-    <option value="ar">العربية</option>
-    <option value="id">Bahasa Indonesia</option>
-  </select>
-</label>
+    <h1 id="title">Kingshot Army Allocation Calculator</h1>
 
-<form id="armyForm">
-  <label id="infLabel">Max Infantry: <input type="number" id="infantry" value="30000"></label>
-  <label id="cavLabel">Max Cavalry: <input type="number" id="cavalry" value="30000"></label>
-  <label id="arcLabel">Max Archers: <input type="number" id="archer" value="30000"></label>
-  <label id="teamLabel">Number of Teams: <input type="number" id="teams" value="6"></label>
-  <label id="ratioLabel">Ratio (Infantry/Cavalry/Archers): <input type="text" id="ratio" value="50/20/30"></label>
-  <button type="button" onclick="calculate()" id="calcBtn">Calculate Allocation</button>
-</form>
+    <div class="input-group">
+        <label id="lblMaxInf">Max Infantry:</label>
+        <input type="number" id="maxInf" min="0" value="30000">
+    </div>
+    <div class="input-group">
+        <label id="lblMaxCav">Max Cavalry:</label>
+        <input type="number" id="maxCav" min="0" value="30000">
+    </div>
+    <div class="input-group">
+        <label id="lblMaxArch">Max Archers:</label>
+        <input type="number" id="maxArch" min="0" value="30000">
+    </div>
+    <div class="input-group">
+        <label id="lblTeams">Number of Teams:</label>
+        <input type="number" id="teams" min="1" value="6">
+    </div>
+    <div class="input-group">
+        <label id="lblRatio">Ratio (Infantry/Cavalry/Archers):</label>
+        <input type="text" id="ratio" placeholder="e.g., 2:1:1 or 1,1,1" value="50/20/30">
+    </div>
 
-<div id="result"></div>
+    <button id="calcBtn">Calculate Allocation</button>
+    <p class="note" id="calcNote">* Allocates based on maximum exact ratio sets within limits.</p>
+
+    <div id="results">
+        <h3 id="resTitle" style="margin-top:0; text-align:center;">Results</h3>
+        <div class="result-row"><span id="lblPerInf" class="result-label">Per Team Infantry</span><span id="resPerInf" class="result-value">0</span></div>
+        <div class="result-row"><span id="lblPerCav" class="result-label">Per Team Cavalry</span><span id="resPerCav" class="result-value">0</span></div>
+        <div class="result-row"><span id="lblPerArch" class="result-label">Per Team Archers</span><span id="resPerArch" class="result-value">0</span></div>
+        <hr style="border-color:#333; margin: 8px 0;">
+        <div class="result-row"><span id="lblRemInf" class="result-label">Remaining Infantry</span><span id="resRemInf" class="result-value remainder">0</span></div>
+        <div class="result-row"><span id="lblRemCav" class="result-label">Remaining Cavalry</span><span id="resRemCav" class="result-value remainder">0</span></div>
+        <div class="result-row"><span id="lblRemArch" class="result-label">Remaining Archers</span><span id="resRemArch" class="result-value remainder">0</span></div>
+    </div>
+</div>
 
 <script>
 const translations = {
-  en: {
-    title: "Kingshot Army Allocation Calculator",
-    langLabel: "Select Language:",
-    infLabel: "Max Infantry:",
-    cavLabel: "Max Cavalry:",
-    arcLabel: "Max Archers:",
-    teamLabel: "Number of Teams:",
-    ratioLabel: "Ratio (Infantry/Cavalry/Archers):",
-    calcBtn: "Calculate Allocation",
-    tableHeaders: ["Team", "Infantry", "Cavalry", "Archers"]
-  },
-  zh: {
-    title: "Kingshot 兵力分配計算器",
-    langLabel: "選擇語言:",
-    infLabel: "步兵最大數量:",
-    cavLabel: "騎兵最大數量:",
-    arcLabel: "弓兵最大數量:",
-    teamLabel: "隊伍數量:",
-    ratioLabel: "比例 (步兵/騎兵/弓兵):",
-    calcBtn: "計算分配",
-    tableHeaders: ["隊伍", "步兵", "騎兵", "弓兵"]
-  },
-  ja: {
-    title: "Kingshot 兵力配分計算機",
-    langLabel: "言語を選択:",
-    infLabel: "歩兵最大数:",
-    cavLabel: "騎兵最大数:",
-    arcLabel: "弓兵最大数:",
-    teamLabel: "部隊数:",
-    ratioLabel: "比率 (歩兵/騎兵/弓兵):",
-    calcBtn: "配分を計算",
-    tableHeaders: ["部隊", "歩兵", "騎兵", "弓兵"]
-  },
-  ar: {
-    title: "حاسبة توزيع جيش Kingshot",
-    langLabel: "اختر اللغة:",
-    infLabel: "الحد الأقصى للمشاة:",
-    cavLabel: "الحد الأقصى للفرسان:",
-    arcLabel: "الحد الأقصى للرماة:",
-    teamLabel: "عدد الفرق:",
-    ratioLabel: "النسبة (مشاة/فرسان/رماة):",
-    calcBtn: "احسب التوزيع",
-    tableHeaders: ["الفريق", "مشاة", "فرسان", "رماة"]
-  },
-  id: {
-    title: "Kalkulator Pembagian Pasukan Kingshot",
-    langLabel: "Pilih Bahasa:",
-    infLabel: "Maksimum Infanteri:",
-    cavLabel: "Maksimum Kavaleri:",
-    arcLabel: "Maksimum Pemanah:",
-    teamLabel: "Jumlah Tim:",
-    ratioLabel: "Rasio (Infanteri/Kavaleri/Pemanah):",
-    calcBtn: "Hitung Pembagian",
-    tableHeaders: ["Tim", "Infanteri", "Kavaleri", "Pemanah"]
-  }
+    en: { title:"Kingshot Army Allocation Calculator", maxInf:"Max Infantry:", maxCav:"Max Cavalry:", maxArch:"Max Archers:", teams:"Number of Teams:", ratio:"Ratio (Inf/Cav/Arch):", calcBtn:"Calculate Allocation", note:"* Allocates based on maximum exact ratio sets within limits.", resTitle:"Results", perInf:"Per Team Infantry", perCav:"Per Team Cavalry", perArch:"Per Team Archers", remInf:"Remaining Infantry", remCav:"Remaining Cavalry", remArch:"Remaining Archers", placeholder:"e.g., 2:1:1 or 1,1,1" },
+    "zh-CN": { title:"Kingshot 部队分配计算器", maxInf:"最大步兵：", maxCav:"最大骑兵：", maxArch:"最大弓兵：", teams:"队伍数量：", ratio:"比例(步/骑/弓)：", calcBtn:"计算分配", note:"* 按上限内最大完整比例组进行分配。", resTitle:"计算结果", perInf:"每队步兵", perCav:"每队骑兵", perArch:"每队弓兵", remInf:"剩余步兵", remCav:"剩余骑兵", remArch:"剩余弓兵", placeholder:"例如：2:1:1 或 1,1,1" },
+    "zh-TW": { title:"Kingshot 部隊分配計算機", maxInf:"最大步兵：", maxCav:"最大騎兵：", maxArch:"最大弓兵：", teams:"隊伍數量：", ratio:"比例(步/騎/弓)：", calcBtn:"計算分配", note:"* 按上限內最大完整比例組進行分配。", resTitle:"計算結果", perInf:"每隊步兵", perCav:"每隊騎兵", perArch:"每隊弓兵", remInf:"剩餘步兵", remCav:"剩餘騎兵", remArch:"剩餘弓兵", placeholder:"例如：2:1:1 或 1,1,1" },
+    ko: { title:"Kingshot 군대 배분 계산기", maxInf:"최대 보병:", maxCav:"최대 기병:", maxArch:"최대 궁병:", teams:"팀 수:", ratio:"비율(보/기/궁):", calcBtn:"배분 계산", note:"* 제한 내 최대 정확한 비율 세트 기준으로 배분됩니다.", resTitle:"결과", perInf:"팀당 보병", perCav:"팀당 기병", perArch:"팀당 궁병", remInf:"잔여 보병", remCav:"잔여 기병", remArch:"잔여 궁병", placeholder:"예: 2:1:1 또는 1,1,1" },
+    fr: { title:"Kingshot Calculateur de répartition", maxInf:"Infanterie Max :", maxCav:"Cavalerie Max :", maxArch:"Archers Max :", teams:"Nombre d'équipes :", ratio:"Ratio (Inf/Cav/Arch) :", calcBtn:"Calculer l'allocation", note:"* Alloue selon le maximum de groupes de ratio exacts dans les limites.", resTitle:"Résultats", perInf:"Infanterie par équipe", perCav:"Cavalerie par équipe", perArch:"Archers par équipe", remInf:"Infanterie restante", remCav:"Cavalerie restante", remArch:"Archers restants", placeholder:"ex: 2:1:1 ou 1,1,1" },
+    de: { title:"Kingshot Truppenzuordnungsrechner", maxInf:"Max. Infanterie:", maxCav:"Max. Kavallerie:", maxArch:"Max. Bogenschützen:", teams:"Anzahl der Teams:", ratio:"Verhältnis (Inf/Kav/Bog):", calcBtn:"Zuordnung berechnen", note:"* Berechnet basierend auf maximalen exakten Verhältnissätzen innerhalb der Grenzen.", resTitle:"Ergebnisse", perInf:"Infanterie pro Team", perCav:"Kavallerie pro Team", perArch:"Bogenschützen pro Team", remInf:"Verbleibende Infanterie", remCav:"Verbleibende Kavallerie", remArch:"Verbleibende Bogenschützen", placeholder:"z.B. 2:1:1 oder 1,1,1" },
+    es: { title:"Kingshot Calculadora de asignación", maxInf:"Infantería Máx.:", maxCav:"Caballería Máx.:", maxArch:"Arqueros Máx.:", teams:"Número de equipos:", ratio:"Proporción (Inf/Cab/Arq):", calcBtn:"Calcular asignación", note:"* Asigna según el máximo de conjuntos de proporción exacta dentro de los límites.", resTitle:"Resultados", perInf:"Infantería por equipo", perCav:"Caballería por equipo", perArch:"Arqueros por equipo", remInf:"Infantería restante", remCav:"Caballería restante", remArch:"Arqueros restantes", placeholder:"ej: 2:1:1 o 1,1,1" },
+    ja: { title:"Kingshot 軍隊配分計算機", maxInf:"最大歩兵：", maxCav:"最大騎兵：", maxArch:"最大弓兵：", teams:"チーム数：", ratio:"比率(歩/騎/弓)：", calcBtn:"配分を計算", note:"* 制限内で正確な比率の最大セット数に基づいて配分します。", resTitle:"結果", perInf:"チームあたり歩兵", perCav:"チームあたり騎兵", perArch:"チームあたり弓兵", remInf:"残りの歩兵", remCav:"残りの騎兵", remArch:"残りの弓兵", placeholder:"例: 2:1:1 または 1,1,1" },
+    ar: { title:"Kingshot حاسبة توزيع الجيش", maxInf:"أقصى مشاة:", maxCav:"أقصى فرسان:", maxArch:"أقصى رماة:", teams:"عدد الفرق:", ratio:"النسبة (مش/فر/رم):", calcBtn:"حساب التوزيع", note:"* يوزع بناءً على الحد الأقصى لمجموعات النسبة الدقيقة ضمن الحدود.", resTitle:"النتائج", perInf:"مشاة لكل فريق", perCav:"فرسان لكل فريق", perArch:"رماة لكل فريق", remInf:"المشاة المتبقية", remCav:"الفرسان المتبقية", remArch:"الرماة المتبقية", placeholder:"مثال: 2:1:1 أو 1,1,1" },
+    id: { title:"Kingshot Kalkulator Alokasi Pasukan", maxInf:"Infanteri Maks:", maxCav:"Kavaleri Maks:", maxArch:"Pemanah Maks:", teams:"Jumlah Tim:", ratio:"Rasio (Inf/Kav/Pem):", calcBtn:"Hitung Alokasi", note:"* Mendistribusikan berdasarkan set rasio eksak maksimum dalam batas.", resTitle:"Hasil", perInf:"Infanteri per Tim", perCav:"Kavaleri per Tim", perArch:"Pemanah per Tim", remInf:"Sisa Infanteri", remCav:"Sisa Kavaleri", remArch:"Sisa Pemanah", placeholder:"mis: 2:1:1 atau 1,1,1" }
 };
 
-function switchLang() {
-  const lang = document.getElementById('langSelect').value;
-  const t = translations[lang];
-  document.getElementById('title').innerText = t.title;
-  document.getElementById('langLabel').innerText = t.langLabel;
-  document.getElementById('infLabel').childNodes[0].nodeValue = t.infLabel + " ";
-  document.getElementById('cavLabel').childNodes[0].nodeValue = t.cavLabel + " ";
-  document.getElementById('arcLabel').childNodes[0].nodeValue = t.arcLabel + " ";
-  document.getElementById('teamLabel').childNodes[0].nodeValue = t.teamLabel + " ";
-  document.getElementById('ratioLabel').childNodes[0].nodeValue = t.ratioLabel + " ";
-  document.getElementById('calcBtn').innerText = t.calcBtn;
+const dom = {
+    lang: document.getElementById('langSelect'),
+    title: document.getElementById('title'),
+    maxInf: document.getElementById('maxInf'), maxCav: document.getElementById('maxCav'), maxArch: document.getElementById('maxArch'),
+    teams: document.getElementById('teams'), ratio: document.getElementById('ratio'),
+    btn: document.getElementById('calcBtn'), note: document.getElementById('calcNote'),
+    resTitle: document.getElementById('resTitle'),
+    resDiv: document.getElementById('results'),
+    perInf: document.getElementById('resPerInf'), perCav: document.getElementById('resPerCav'), perArch: document.getElementById('resPerArch'),
+    remInf: document.getElementById('resRemInf'), remCav: document.getElementById('resRemCav'), remArch: document.getElementById('resRemArch'),
+    container: document.getElementById('mainContainer')
+};
+
+function translate(lang) {
+    const t = translations[lang];
+    if (!t) return;
+    document.documentElement.lang = lang;
+    document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+    dom.container.classList.toggle('rtl', lang === 'ar');
+    
+    dom.title.textContent = t.title;
+    document.getElementById('lblMaxInf').textContent = t.maxInf;
+    document.getElementById('lblMaxCav').textContent = t.maxCav;
+    document.getElementById('lblMaxArch').textContent = t.maxArch;
+    document.getElementById('lblTeams').textContent = t.teams;
+    document.getElementById('lblRatio').textContent = t.ratio;
+    dom.ratio.placeholder = t.placeholder;
+    dom.btn.textContent = t.calcBtn;
+    dom.note.textContent = t.note;
+    dom.resTitle.textContent = t.resTitle;
+    document.getElementById('lblPerInf').textContent = t.perInf;
+    document.getElementById('lblPerCav').textContent = t.perCav;
+    document.getElementById('lblPerArch').textContent = t.perArch;
+    document.getElementById('lblRemInf').textContent = t.remInf;
+    document.getElementById('lblRemCav').textContent = t.remCav;
+    document.getElementById('lblRemArch').textContent = t.remArch;
 }
+
+dom.lang.addEventListener('change', e => translate(e.target.value));
 
 function calculate() {
-  const infantryMax = parseInt(document.getElementById('infantry').value) || 0;
-  const cavalryMax = parseInt(document.getElementById('cavalry').value) || 0;
-  const archerMax = parseInt(document.getElementById('archer').value) || 0;
-  const teams = parseInt(document.getElementById('teams').value) || 1;
-  const ratioStr = document.getElementById('ratio').value.trim();
-  const lang = document.getElementById('langSelect').value;
-  const t = translations[lang];
-  
-  const ratioParts = ratioStr.split('/');
-  if (ratioParts.length !== 3) {
-    alert("Ratio must be three numbers, e.g. 50/20/30");
-    return;
-  }
-  const rInf = parseFloat(ratioParts[0]);
-  const rCav = parseFloat(ratioParts[1]);
-  const rArc = parseFloat(ratioParts[2]);
-  const totalRatio = rInf + rCav + rArc;
+    const maxI = parseInt(dom.maxInf.value) || 0;
+    const maxC = parseInt(dom.maxCav.value) || 0;
+    const maxA = parseInt(dom.maxArch.value) || 0;
+    const teams = parseInt(dom.teams.value) || 1;
+    
+    // Parse ratio safely
+    const ratioStr = dom.ratio.value.trim().replace(/\s+/g, '');
+    const ratios = ratioStr.split(/[\/:،,]/).map(Number);
+    if (ratios.length < 3 || ratios.some(isNaN) || ratios.some(r => r <= 0)) {
+        alert(translations[dom.lang.value].note);
+        return;
+    }
+    const [rI, rC, rA] = ratios;
 
-  const totalSoldiers = infantryMax + cavalryMax + archerMax;
-  const perTeamTotal = totalSoldiers / teams;
+    // Find limiting factor (max complete ratio sets possible)
+    const setsI = Math.floor(maxI / rI);
+    const setsC = Math.floor(maxC / rC);
+    const setsA = Math.floor(maxA / rA);
+    const maxSets = Math.min(setsI, setsC, setsA);
 
-  let perTeamInf = perTeamTotal * (rInf / totalRatio);
-  let perTeamCav = perTeamTotal * (rCav / totalRatio);
-  let perTeamArc = perTeamTotal * (rArc / totalRatio);
+    // Total troops that can be allocated while maintaining exact ratio
+    const totalI = maxSets * rI;
+    const totalC = maxSets * rC;
+    const totalA = maxSets * rA;
 
-  let totalInf = perTeamInf * teams;
-  let totalCav = perTeamCav * teams;
-  let totalArc = perTeamArc * teams;
+    // Distribute evenly across teams
+    const perI = Math.floor(totalI / teams);
+    const perC = Math.floor(totalC / teams);
+    const perA = Math.floor(totalA / teams);
 
-  const scaleInf = infantryMax / totalInf;
-  const scaleCav = cavalryMax / totalCav;
-  const scaleArc = archerMax / totalArc;
-  const scale = Math.min(scaleInf, scaleCav, scaleArc, 1);
+    // Remaining troops
+    const remI = maxI - (perI * teams);
+    const remC = maxC - (perC * teams);
+    const remA = maxA - (perA * teams);
 
-  perTeamInf *= scale;
-  perTeamCav *= scale;
-  perTeamArc *= scale;
+    dom.perInf.textContent = perI.toLocaleString();
+    dom.perCav.textContent = perC.toLocaleString();
+    dom.perArch.textContent = perA.toLocaleString();
+    dom.remInf.textContent = remI.toLocaleString();
+    dom.remCav.textContent = remC.toLocaleString();
+    dom.remArch.textContent = remA.toLocaleString();
 
-  let html = "<table><tr>";
-  for (const h of t.tableHeaders) {
-    html += `<th>${h}</th>`;
-  }
-  html += "</tr>";
-
-  for (let i = 1; i <= teams; i++) {
-    html += `<tr><td>${i}</td><td>${Math.floor(perTeamInf)}</td><td>${Math.floor(perTeamCav)}</td><td>${Math.floor(perTeamArc)}</td></tr>`;
-  }
-  html += "</table>";
-
-  document.getElementById('result').innerHTML = html;
+    dom.resDiv.style.display = 'block';
 }
+
+dom.btn.addEventListener('click', calculate);
+
+// Init
+translate(dom.lang.value);
 </script>
 </body>
 </html>
